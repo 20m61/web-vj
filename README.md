@@ -1,199 +1,112 @@
-# VJ ツールプロジェクト ドキュメント
+# v1s3r
 
-## アプリケーションの目的
+v1s3r is a browser-native visual performance system for composing music, media, generated visuals, typography, and human interaction in real time.
 
-このプロジェクトは、ユーザーがリアルタイムでビデオおよびオーディオストリームを対話的に操作できる Web ベースの VJ（ビデオジョッキー）ツールを開発することを目指しています。アプリケーションは、ユーザーの入力とオーディオ解析によって駆動されるさまざまなマルチメディア要素とエフェクトを統合します。
+The project is being rebuilt from the earlier `web-vj` concept. The current development focus is a runtime that treats Remotion expressions as reusable **Visual Modules** with typed input ports. Audio features, pointer gestures, device motion, speech recognition, cues, and future V1P messages can be wired to those ports while the performance is running.
 
-## 仕様
+## Current status
 
-- **サウンドリアクティブ**: オーディオ入力に動的に反応するビジュアル。
-- **3D ビジュアライゼーション**: 視覚的なアウトプットを高めるための 3D グラフィックスの統合。
-- **フィルターとエフェクト**: ビデオストリームを変更するためのグリッチなどの視覚効果を含む。
-- **パーティクルシステム**: 視覚的な複雑さを追加するためのパーティクルアニメーションの実装。
-- **ウェブカメラ統合**: ユーザーのウェブカメラからのライブビデオ入力のキャプチャ。
-- **レイヤリング**: ユーザーがビデオとエフェクトの複数のレイヤーを管理できるようにする。
-- **プラットフォーム**: デスクトップおよびモバイルデバイスを通じてアクセス可能なブラウザベース。
+The repository is in the foundation phase. The previous README described a proposed VJ application structure that did not match the actual repository contents. The project is now defining its runtime contracts and first vertical slice before implementation begins.
 
-## 使用技術
+Tracking Epic: #2
 
-- **Next.js**: フロントエンドフレームワークとして利用し、サーバーサイドレンダリングと静的サイト生成を促進。
-- **React**: コンポーネントベースのアーキテクチャでユーザーインターフェイスを構築。
-- **Three.js**: 3D ビジュアライゼーションの作成と操作。
-- **Web オーディオ API**: リアルタイムのオーディオ処理用。
-- **GitHub Pages**: Next.js によって生成された静的サイトをホスト。
-- **GitHub Actions**: 継続的インテグレーションとデプロイメントのために使用。
+## First vertical slice
 
-## セットアップ
+Three Visual Modules:
 
-1. リポジトリをクローンします。
+- Flow Field
+- Video Layer
+- Kinetic Typography
 
-```bash
-git clone
+Four live bindings:
+
+```text
+audio.bass       -> flow.energy
+pointer.position -> flow.origin
+audio.onset      -> video.jump
+speech.finalText -> typography.text
 ```
 
-2. プロジェクトディレクトリに移動します。
+The composition must be editable, serializable, reloadable, replayable from a Performance Log, and renderable through Remotion.
 
-```bash
-cd vj-tool
+## Architecture
+
+```text
+Audio / Pointer / Motion / Speech / V1P
+                    |
+                    v
+              Signal Runtime
+                    |
+                    v
+              Binding Engine
+                    |
+                    v
+            Module State Store
+                    |
+                    v
+              Remotion Host
+                    |
+                    v
+              Visual Modules
 ```
 
-3. 依存関係をインストールします。
+### Main concepts
 
-```bash
-npm install
-```
+- **Visual Module Definition**: reusable, versioned Remotion/React expression with typed ports
+- **Module Instance**: a placed use of a module definition
+- **Sequence**: time-bounded placement of a module instance
+- **Signal**: normalized continuous value, event, state, text, or asset input
+- **Binding**: `Signal -> Operators -> Module Input`
+- **Composition**: serializable module, sequence, asset, and binding graph
+- **Performance Log**: timestamped input and state record for Replay and Render
 
-4. 開発サーバーを起動します。
+## Execution modes
 
-```bash
-npm run dev
-```
+- **Live**: realtime browser input and performance clock
+- **Preview**: Remotion Player clock and simulated/editor input
+- **Replay**: recorded Performance Log
+- **Render**: Remotion frame clock with deterministic inputs
 
-5. ブラウザでアプリケーションにアクセスします。
+## Documentation
 
-```bash
-http://localhost:3000
-```
+- [Project charter](docs/charter.md)
+- [Architecture overview](docs/architecture/overview.md)
+- [MVP vertical slice](docs/product/mvp.md)
+- [Architecture decision backlog](docs/decisions/README.md)
 
-## ディレクトリ構造
+## Responsibility boundaries
 
-```bash
-vj-tool
-├── .github
-│   └── workflows
-│       └── deploy.yml
-├── components
-│   ├── AudioVisualizer.js
-│   ├── Controls.js
-│   ├── Layer.js
-│   ├── ParticleSystem.js
-│   ├── VideoLayer.js
-│   └── WebcamCapture.js
-├── pages
-│   ├── _app.js
-│   ├── _document.js
-│   ├── index.js
-│   └── styles.css
-├── public
-│   ├── favicon.ico
-│   └── manifest.json
-├── styles
-│   └── globals.css
-├── .gitignore
-├── next.config.js
-├── package.json
-└── README.md
-```
+### v1s3r
 
-## コンポーネント
+Visual Module SDK, Signal Runtime, Binding Engine, Remotion Host integration, editor, performance logging, replay, and live rendering.
 
-### AudioVisualizer
+### Remotion
 
-オーディオ入力に基づいてビジュアルエフェクトを生成するコンポーネント。
+Sequence composition, preview playback, frame-based replay, and offline rendering.
 
-### Controls
+### SENN
 
-アプリケーションのコントロールパネルを提供するコンポーネント。
+Future peer sessions, connection, transport, reconnection, and capability exchange.
 
-### Layer
+### V1P
 
-ビデオレイヤーを管理するコンポーネント。
+Future peer messages for visual intent, state, cues, time, health, and snapshots. V1P messages will enter v1s3r through the common Signal model.
 
-### ParticleSystem
+## Development order
 
-パーティクルアニメーションを生成するコンポーネント。
+1. Project charter and architecture boundaries — #3
+2. Visual Module SDK and registry — #4
+3. Signal Runtime and input adapters — #5
+4. Binding Engine — #6
+5. Remotion Host — #7
+6. Editor and Wiring Table — #8
+7. Device-tested vertical slice — #9
 
-### VideoLayer
+## Non-goals for the first stage
 
-ビデオストリームを表示するコンポーネント。
-
-### WebcamCapture
-
-ウェブカメラからのビデオ入力をキャプチャするコンポーネント。
-
-## ページ
-
-### index
-
-アプリケーションのメインページ。
-
-## スタイル
-
-### globals
-
-アプリケーション全体のスタイルを定義する CSS ファイル。
-
-## カスタムドキュメント
-
-### \_document
-
-アプリケーションの HTML ドキュメントのカスタム設定を提供するファイル。
-
-## カスタムアプリケーション
-
-### \_app
-
-アプリケーションのルートコンポーネントをカスタマイズするファイル。
-
-## 拡張機能
-
-### Next.js
-
-Next.js は、React アプリケーションの開発を簡素化し、サーバーサイドレンダリングと静的サイト生成をサポートします。これにより、パフォーマンスの向上と SEO の最適化が可能になります。
-
-### Three.js
-
-Three.js は、WebGL を使用して 3D グラフィックスを描画するための JavaScript ライブラリです。これにより、アプリケーションにリッチなビジュアライゼーションを統合できます。
-
-### Web オーディオ API
-
-Web オーディオ API は、ブラウザでリアルタイムのオーディオ処理を実行するための API です。これにより、オーディオ入力に基づいてビジュアルエフェクトを生成できます。
-
-## GitHub Pages
-
-GitHub Pages は、GitHub リポジトリから静的サイトをホストするための無料のサービスです。これにより、アプリケーションを簡単に公開し、共有できます。
-
-## GitHub Actions
-
-GitHub Actions は、GitHub リポジトリ内で継続的インテグレーションとデプロイメントを自動化するためのツールです。これにより、品質の高いコードを保証し、効率的な開発プロセスを実現できます。
-
-## GitHub Actions を使用した GitHub Pages へのデプロイメントワークフロー
-
-### 概要
-
-このワークフローは、Next.js プロジェクトのビルド、テストの実行、および成功したビルドを GitHub Pages にデプロイするプロセスを自動化します。これにより、品質の高いコードのみが本番環境にデプロイされることを保証します。
-
-### トリガーイベント
-
-- **Push**: `main` ブランチへのプッシュがトリガー。
-- **Workflow Dispatch**: GitHub Actions タブから手動でワークフローを実行可能。
-
-### パーミッション
-
-- **Contents**: 読み取り専用アクセス。
-- **Pages**: GitHub Pages へのデプロイのための書き込み権限。
-- **ID-Token**: ID トークン生成のための書き込み権限。
-
-### 並行処理の管理
-
-同時に一つのデプロイメントのみを実行し、進行中のデプロイメントはキャンセルせずに、最新のキューのみを実行します。
-
-### ジョブ
-
-#### ビルドジョブ
-
-- コードのチェックアウト
-- パッケージマネージャの検出（npm または yarn）
-- Node.js 環境のセットアップ
-- 依存関係のインストール
-- Next.js アプリケーションのビルド
-- 単体および統合テストの実行
-- ビルドアーティファクトのアップロード
-
-#### デプロイジョブ
-
-ビルドジョブが成功した場合のみ実行されるデプロイメントステップです。GitHub Pages へのデプロイを行います。
-
-## 結論
-
-このドキュメントは VJ ツールプロジェクトの包括的なガイドとして機能し、アプリケーションの目的、仕様、自動デプロイメントプロセスの詳細を説明しています。開発者やユーザーが効果的にツールを理解し、利用するための支援を目的としています。
+- Full replacement for Resolume or TouchDesigner
+- Arbitrary unsigned JavaScript from external URLs
+- General-purpose node programming
+- Frame-perfect multi-device pixel synchronization
+- Large-scale distributed consensus
+- Full MIDI, OSC, DMX, NDI, or broadcast integration
