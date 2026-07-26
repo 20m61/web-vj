@@ -16,10 +16,6 @@
     "typescript": "^7.0.2",
     "vitest": "^4.1.10"
   },
-  "peerDependencies": {
-    "react": "^19.2.7",
-    "remotion": "^4.0.499"
-  },
   "engines": {
     "node": ">=22"
   }
